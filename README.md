@@ -1,13 +1,14 @@
-# Sample Hardhat Project
+# Arc Testnet DEX Farm Project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+Solidity კონტრაქტი DEX-ის სიმულაციისთვის Arc Testnet-ზე.
 
-Try running some of the following tasks:
+## ფუნქციები
+- Token swap
+- Liquidity add/remove
+- Staking & Farming
+- Mint/Burn custom tokens (TCL, SAM, LG)
+- Owner functions (emergency withdraw, pause, etc.)
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
-```
+## დეპლოი
+```bash
+npx hardhat run scripts/DEXDeployAll2.ts --network arcTestnet
