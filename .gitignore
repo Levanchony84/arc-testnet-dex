@@ -10,14 +10,16 @@ node_modules/
 .env.test.local
 .env.production.local
 
-# TypeScript
-*.tsbuildinfo
+# TypeChain / generated types
+typechain-types/
+typechain/
 
-# Logs
+# Logs & debug files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
 # Editor / OS files
 .DS_Store
@@ -31,19 +33,35 @@ Thumbs.db
 *.key
 *.pem
 *.secret
+*.private
+*.wallet
 
 # Test artifacts
 test-results/
 test-results.xml
+coverage.lcov
 
-# Optional: don't commit build artifacts if you don't want
+# Build artifacts (frontend თუ გაქვს)
 dist/
 build/
+.next/
+out/
 
-# If you use yarn berry / pnpm
+# If you use yarn berry / pnpm / bun
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.pnpm-store/
+bun.lockb
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Optional: Hardhat deployment artifacts
+deployments/
+broadcast/

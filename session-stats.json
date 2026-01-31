@@ -1,0 +1,13 @@
+{
+  "startTime": 1769868772115,
+  "totalAttempts": 67,
+  "successful": 32,
+  "failed": 16,
+  "skipped": 19,
+  "dex1Ops": 15,
+  "dex2Ops": 20,
+  "dex3Ops": 18,
+  "endTime": 1769875886310,
+  "durationSeconds": 7114,
+  "successRate": "47.76%"
+}

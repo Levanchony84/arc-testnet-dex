@@ -82,6 +82,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Strings__factory>;
     getContractFactory(
+      name: "HPDeFiEmpire",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.HPDeFiEmpire__factory>;
+    getContractFactory(
+      name: "IERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC20__factory>;
+    getContractFactory(
       name: "HPPart1",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.HPPart1__factory>;
@@ -113,6 +121,10 @@ declare module "hardhat/types/runtime" {
       name: "Pika",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Pika__factory>;
+    getContractFactory(
+      name: "TestToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TestToken__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -200,6 +212,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Strings>;
     getContractAt(
+      name: "HPDeFiEmpire",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.HPDeFiEmpire>;
+    getContractAt(
+      name: "IERC20",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC20>;
+    getContractAt(
       name: "HPPart1",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -239,6 +261,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.Pika>;
+    getContractAt(
+      name: "TestToken",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TestToken>;
 
     deployContract(
       name: "Ownable",
@@ -309,6 +336,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Strings>;
     deployContract(
+      name: "HPDeFiEmpire",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.HPDeFiEmpire>;
+    deployContract(
+      name: "IERC20",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20>;
+    deployContract(
       name: "HPPart1",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.HPPart1>;
@@ -340,6 +375,10 @@ declare module "hardhat/types/runtime" {
       name: "Pika",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Pika>;
+    deployContract(
+      name: "TestToken",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.TestToken>;
 
     deployContract(
       name: "Ownable",
@@ -427,6 +466,16 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Strings>;
     deployContract(
+      name: "HPDeFiEmpire",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.HPDeFiEmpire>;
+    deployContract(
+      name: "IERC20",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20>;
+    deployContract(
       name: "HPPart1",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -466,6 +515,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Pika>;
+    deployContract(
+      name: "TestToken",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.TestToken>;
 
     // default types
     getContractFactory(
