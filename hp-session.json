@@ -1,0 +1,18 @@
+{
+  "startTime": 1769878590380,
+  "operatorName": "ბექა",
+  "totalAttempts": 12,
+  "successful": 12,
+  "failed": 3,
+  "swaps": 4,
+  "liquidityOps": 6,
+  "nftMints": 7,
+  "nftTrades": 0,
+  "stakes": 0,
+  "governance": 0,
+  "arbitrage": 0,
+  "totalVolume": "0",
+  "totalGasUsed": "0",
+  "mood": "casual",
+  "endTime": 1769881382400
+}

@@ -8,3 +8,4 @@ export * as hpdefiempireSol from "./Hpdefiempire.sol";
 export * as testtokenSol from "./Testtoken.sol";
 export { Lock__factory } from "./Lock__factory";
 export { Pika__factory } from "./Pika__factory";
+export { Simo__factory } from "./Simo__factory";

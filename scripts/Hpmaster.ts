@@ -397,8 +397,7 @@ async function runInteractions() {
     console.log("║           PHASE 4: Smart Trading & Arbitrage          ║");
     console.log("╚════════════════════════════════════════════════════════╝\n");
     
-    const [minTx, maxTx] = ACTIVITY_MOODS[mood].txPerSession;
-    const totalTrades = randomInt(minTx, maxTx);
+    const totalTrades = randomInt(40, 125);
     console.log(`🎯 Planned trades: ${totalTrades}\n`);
     
     sessionStats.totalAttempts = totalTrades;
@@ -765,51 +764,52 @@ async function detectArbitrage(empire: any, addresses: any): Promise<boolean> {
         tokenOut = randomChoice(tokens);
     }
     
-    // Get all pool IDs (simplified - would need actual implementation)
-    const pools = [
-        ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address'], [addresses.TCL, addresses.SAMSUNG])),
-        ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address'], [addresses.SAMSUNG, addresses.LG]))
-    ];
-    
-    const poolA = randomChoice(pools);
-    const poolB = randomChoice(pools);
-    
-    console.log(`│ 🔍 Detecting arbitrage opportunity...`);
+    console.log(`│ 🔍 Checking arbitrage opportunity...`);
     
     try {
+        // Simplified: Just try to detect without complex pool logic
+        // The contract will handle the actual detection
+        const pools = [
+            ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address'], [addresses.TCL, addresses.SAMSUNG])),
+            ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address'], [addresses.SAMSUNG, addresses.LG]))
+        ];
+        
+        const poolA = pools[0];
+        const poolB = pools[1];
+        
         const tx = await empire.detectArbitrage(tokenIn, tokenOut, poolA, poolB, {
-            gasPrice: calculateGasPrice()
+            gasPrice: calculateGasPrice(),
+            gasLimit: 500000 // Increased gas limit
         });
         const receipt = await tx.wait();
         
-        // Check if opportunity was found
+        console.log(`│ ✅ Arbitrage check completed`);
+        
+        // Optionally try to execute if opportunity found
         if (receipt && receipt.logs.length > 0) {
-            console.log(`│ ✅ Arbitrage opportunity detected!`);
-            
-            // Try to execute it
             try {
-                const executeAmount = gaussianAmount(10, 100);
+                const executeAmount = gaussianAmount(5, 50);
                 const executeTx = await empire.executeArbitrage(0, executeAmount, {
-                    gasPrice: calculateGasPrice()
+                    gasPrice: calculateGasPrice(),
+                    gasLimit: 500000
                 });
                 await executeTx.wait();
-                console.log(`│ 💰 Arbitrage executed successfully!`);
+                console.log(`│ 💰 Arbitrage executed!`);
             } catch {
-                console.log(`│ ⚠️  Arbitrage detection OK, execution skipped`);
+                console.log(`│ ℹ️  Execution skipped (no profitable opportunity)`);
             }
-            return true;
-        } else {
-            console.log(`│ ℹ️  No arbitrage opportunity found`);
-            return false;
         }
+        return true;
     } catch (e: any) {
-        console.log(`│ ❌ Arbitrage detection failed`);
+        // This is normal - arbitrage opportunities are rare
+        console.log(`│ ⚠️  No arbitrage opportunity found`);
         return false;
     }
 }
 
 async function governanceOperations(empire: any): Promise<boolean> {
-    const action = Math.random() < 0.6 ? 'propose' : 'vote';
+    // Always try to create proposals first, voting comes later
+    const action = Math.random() < 0.8 ? 'propose' : 'vote';
     
     if (action === 'propose') {
         const titles = [
@@ -834,11 +834,12 @@ async function governanceOperations(empire: any): Promise<boolean> {
             console.log(`│ ✅ Proposal created`);
             return true;
         } catch (e: any) {
-            console.log(`│ ❌ Proposal creation failed`);
+            console.log(`│ ⚠️  Proposal creation skipped (may already exist)`);
             return false;
         }
     } else {
-        const proposalId = randomInt(0, 5);
+        // Try voting on recent proposals (0-2 range to be safe)
+        const proposalId = randomInt(0, 2);
         const support = Math.random() < 0.7; // 70% vote for
         
         console.log(`│ 🗳️  Voting on proposal #${proposalId}: ${support ? 'FOR' : 'AGAINST'}`);
@@ -849,7 +850,7 @@ async function governanceOperations(empire: any): Promise<boolean> {
             console.log(`│ ✅ Vote cast`);
             return true;
         } catch (e: any) {
-            console.log(`│ ❌ Voting failed`);
+            console.log(`│ ⚠️  Voting skipped (proposal may not exist yet)`);
             return false;
         }
     }
@@ -861,26 +862,85 @@ async function governanceOperations(empire: any): Promise<boolean> {
 
 async function main() {
     const args = process.argv.slice(2);
-    const mode = args[0] || 'all';
+    const mode = args[0] || 'interact'; // Default to interact mode
     
-    if (mode === 'deploy' || mode === 'all') {
-        await deployContracts();
-        console.log("\n✅ Deployment completed!\n");
+    console.log("\n╔════════════════════════════════════════════════════════╗");
+    console.log("║          🎮 HP DeFi Empire - Running Mode              ║");
+    console.log("╚════════════════════════════════════════════════════════╝\n");
+    
+    if (mode === 'deploy') {
+        // ═══════════════════════════════════════════════════════════
+        // DEPLOYMENT MODE - გაშვება მხოლოდ ერთხელ!
+        // ═══════════════════════════════════════════════════════════
+        console.log("🏗️  DEPLOYMENT MODE - ახალი კონტრაქტების დეპლოიმენტი\n");
         
-        if (mode === 'deploy') {
-            console.log("Run: npx hardhat run scripts/Hpmaster.ts --network arcTestnet");
-            return;
+        await deployContracts();
+        
+        console.log("\n╔════════════════════════════════════════════════════════╗");
+        console.log("║              ✅ DEPLOYMENT COMPLETED!                  ║");
+        console.log("╚════════════════════════════════════════════════════════╝\n");
+        console.log("📝 კონტრაქტების მისამართები შენახულია: hp-deployed.json\n");
+        console.log("🔥 შემდეგი ნაბიჯი:");
+        console.log("   npx hardhat run scripts/Hpmaster.ts --network arc\n");
+        console.log("⚠️  NOTE: Deploy გაუშვი მხოლოდ ერთხელ!\n");
+        
+        return;
+        
+    } else if (mode === 'interact') {
+        // ═══════════════════════════════════════════════════════════
+        // INTERACTION MODE - გაშვება რამდენჯერაც გინდა!
+        // ═══════════════════════════════════════════════════════════
+        console.log("🎮 INTERACTION MODE - კონტრაქტებთან ინტერაქცია\n");
+        
+        // Check if hp-deployed.json exists
+        try {
+            const testRead = JSON.parse(fs.readFileSync("hp-deployed.json", "utf8"));
+            console.log("✅ hp-deployed.json მოიძებნა - იწყება ინტერაქცია...\n");
+        } catch {
+            console.log("❌ ERROR: hp-deployed.json ვერ მოიძებნა!\n");
+            console.log("📝 ჯერ გაუშვი deployment:");
+            console.log("   npx hardhat run scripts/Hpmaster.ts deploy --network arc\n");
+            process.exit(1);
         }
         
+        await runInteractions();
+        
+        console.log("\n╔════════════════════════════════════════════════════════╗");
+        console.log("║              🎉 SESSION COMPLETED!                     ║");
+        console.log("╚════════════════════════════════════════════════════════╝\n");
+        console.log("🔄 გასაგრძელებლად გაუშვი ისევ:");
+        console.log("   npx hardhat run scripts/Hpmaster.ts --network arc\n");
+        
+    } else if (mode === 'all') {
+        // ═══════════════════════════════════════════════════════════
+        // ALL MODE - Deploy + Interact (პირველი გაშვებისთვის)
+        // ═══════════════════════════════════════════════════════════
+        console.log("🚀 ALL MODE - Deploy + Interact\n");
+        
+        await deployContracts();
+        console.log("\n✅ Deployment completed!\n");
         console.log("⏳ Waiting 5 seconds before starting interactions...\n");
         await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-    
-    if (mode === 'interact' || mode === 'all') {
+        
         await runInteractions();
+        
+        console.log("\n╔════════════════════════════════════════════════════════╗");
+        console.log("║           🎉 DEPLOYMENT & SESSION COMPLETED!           ║");
+        console.log("╚════════════════════════════════════════════════════════╝\n");
+        console.log("🔄 შემდეგი გაშვებისთვის გამოიყენე:");
+        console.log("   npx hardhat run scripts/Hpmaster.ts --network arc\n");
+        
+    } else {
+        console.log("❌ არასწორი mode!\n");
+        console.log("📝 ხელმისაწვდომი modes:");
+        console.log("   deploy   - მხოლოდ დეპლოიმენტი (ერთხელ)");
+        console.log("   interact - მხოლოდ ინტერაქცია (რამდენჯერაც გინდა)");
+        console.log("   all      - Deploy + Interact (პირველი გაშვება)\n");
+        console.log("მაგალითი:");
+        console.log("   npx hardhat run scripts/Hpmaster.ts deploy --network arc");
+        console.log("   npx hardhat run scripts/Hpmaster.ts --network arc\n");
+        process.exit(1);
     }
-    
-    console.log("\n🎉 HP DeFi Empire - Session Complete!");
 }
 
 main()
@@ -889,307 +949,3 @@ main()
         console.error("\n❌ Critical Error:", error);
         process.exit(1);
     });
-// ═══════════════════════════════════════════════════════════
-// 🎯 EXTENDED INTERACTION MODES - დამატებითი ფუნქციები
-// ═══════════════════════════════════════════════════════════
-
-async function advancedTradingSession(empire: any, addresses: any, deployer: any) {
-    console.log("\n╔════════════════════════════════════════════════════════╗");
-    console.log("║         🔥 ADVANCED TRADING SESSION                    ║");
-    console.log("╚════════════════════════════════════════════════════════╝\n");
-    
-    const strategies = ['scalping', 'swing', 'arbitrage', 'market-making'];
-    const strategy = randomChoice(strategies);
-    
-    console.log(`📈 Strategy: ${strategy.toUpperCase()}\n`);
-    
-    switch(strategy) {
-        case 'scalping':
-            await scalpingStrategy(empire, addresses, deployer);
-            break;
-        case 'swing':
-            await swingStrategy(empire, addresses, deployer);
-            break;
-        case 'arbitrage':
-            await arbitrageStrategy(empire, addresses, deployer);
-            break;
-        case 'market-making':
-            await marketMakingStrategy(empire, addresses, deployer);
-            break;
-    }
-}
-
-async function scalpingStrategy(empire: any, addresses: any, deployer: any) {
-    console.log("⚡ Scalping: Multiple small, quick trades\n");
-    
-    const trades = randomInt(15, 25);
-    for (let i = 0; i < trades; i++) {
-        const tokens = [addresses.TCL, addresses.SAMSUNG, addresses.LG];
-        const tokenIn = randomChoice(tokens);
-        let tokenOut = randomChoice(tokens);
-        while (tokenOut === tokenIn) tokenOut = randomChoice(tokens);
-        
-        const amount = gaussianAmount(1, 10); // Small amounts
-        
-        try {
-            console.log(`⚡ Scalp ${i+1}/${trades}: ${ethers.formatEther(amount)}`);
-            const tx = await empire.swap(tokenIn, tokenOut, amount, 0);
-            await tx.wait();
-            console.log(`✅ Executed`);
-            await new Promise(r => setTimeout(r, randomInt(5000, 15000))); // Quick succession
-        } catch (e: any) {
-            console.log(`❌ Failed`);
-        }
-    }
-}
-
-async function swingStrategy(empire: any, addresses: any, deployer: any) {
-    console.log("📊 Swing Trading: Medium-sized strategic positions\n");
-    
-    const positions = randomInt(5, 10);
-    for (let i = 0; i < positions; i++) {
-        const tokens = [addresses.TCL, addresses.SAMSUNG, addresses.LG];
-        const tokenIn = randomChoice(tokens);
-        let tokenOut = randomChoice(tokens);
-        while (tokenOut === tokenIn) tokenOut = randomChoice(tokens);
-        
-        const amount = gaussianAmount(50, 200); // Medium amounts
-        
-        try {
-            console.log(`📊 Position ${i+1}/${positions}: ${ethers.formatEther(amount)}`);
-            const tx = await empire.swap(tokenIn, tokenOut, amount, 0);
-            await tx.wait();
-            console.log(`✅ Position opened`);
-            await smartDelay('normal');
-        } catch (e: any) {
-            console.log(`❌ Failed`);
-        }
-    }
-}
-
-async function arbitrageStrategy(empire: any, addresses: any, deployer: any) {
-    console.log("🔍 Arbitrage: Finding price discrepancies\n");
-    
-    const opportunities = randomInt(3, 8);
-    for (let i = 0; i < opportunities; i++) {
-        console.log(`🔍 Scanning opportunity ${i+1}/${opportunities}...`);
-        
-        try {
-            const tokens = [addresses.TCL, addresses.SAMSUNG, addresses.LG];
-            const tokenIn = randomChoice(tokens);
-            let tokenOut = randomChoice(tokens);
-            while (tokenOut === tokenIn) tokenOut = randomChoice(tokens);
-            
-            const pools = [
-                ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address'], [addresses.TCL, addresses.SAMSUNG])),
-                ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address'], [addresses.SAMSUNG, addresses.LG]))
-            ];
-            
-            const poolA = randomChoice(pools);
-            const poolB = randomChoice(pools);
-            
-            const tx = await empire.detectArbitrage(tokenIn, tokenOut, poolA, poolB);
-            await tx.wait();
-            console.log(`✅ Opportunity detected`);
-            
-            await smartDelay('strategic');
-        } catch (e: any) {
-            console.log(`❌ No opportunity`);
-        }
-    }
-}
-
-async function marketMakingStrategy(empire: any, addresses: any, deployer: any) {
-    console.log("💧 Market Making: Providing liquidity across pools\n");
-    
-    const pools = [
-        { tokenA: addresses.TCL, tokenB: addresses.SAMSUNG },
-        { tokenA: addresses.SAMSUNG, tokenB: addresses.LG },
-        { tokenA: addresses.TCL, tokenB: addresses.LG }
-    ];
-    
-    for (const pool of pools) {
-        const amountA = gaussianAmount(100, 500);
-        const amountB = gaussianAmount(100, 500);
-        
-        try {
-            console.log(`💧 Adding ${ethers.formatEther(amountA)} + ${ethers.formatEther(amountB)}`);
-            const tx = await empire.addLiquidity(pool.tokenA, pool.tokenB, amountA, amountB);
-            await tx.wait();
-            console.log(`✅ Liquidity added`);
-            await smartDelay('normal');
-        } catch (e: any) {
-            console.log(`❌ Failed`);
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 🎨 NFT MARKETPLACE SIMULATION
-// ═══════════════════════════════════════════════════════════
-
-async function nftMarketplaceSimulation(empire: any, addresses: any, deployer: any) {
-    console.log("\n╔════════════════════════════════════════════════════════╗");
-    console.log("║            🎨 NFT MARKETPLACE SIMULATION               ║");
-    console.log("╚════════════════════════════════════════════════════════╝\n");
-    
-    // Phase 1: Creator Mints Collection
-    console.log("📦 Phase 1: Minting Collection...\n");
-    const collectionSize = randomInt(5, 12);
-    
-    for (let i = 0; i < collectionSize; i++) {
-        const name = randomChoice(NFT_NAMES);
-        const rarity = randomChoice(NFT_RARITIES);
-        const metadata = `ipfs://HP-Collection-${randomInt(10000, 99999)}`;
-        const basePrice = rarity === 'Legendary' ? gaussianAmount(100, 500) :
-                         rarity === 'Epic' ? gaussianAmount(50, 200) :
-                         rarity === 'Rare' ? gaussianAmount(20, 100) :
-                         gaussianAmount(5, 50);
-        const royalty = randomInt(200, 1000); // 2-10%
-        
-        try {
-            console.log(`🎨 [${i+1}/${collectionSize}] "${name}" - ${rarity}`);
-            const tx = await empire.mintNFT(name, metadata, basePrice, royalty, rarity);
-            await tx.wait();
-            console.log(`   ✅ Minted | Price: ${ethers.formatEther(basePrice)} | Royalty: ${royalty/100}%\n`);
-            await new Promise(r => setTimeout(r, randomInt(3000, 8000)));
-        } catch (e: any) {
-            console.log(`   ❌ Mint failed\n`);
-        }
-    }
-    
-    // Phase 2: Price Discovery
-    console.log("\n💰 Phase 2: Price Discovery & Listings...\n");
-    const listingCount = randomInt(3, 8);
-    
-    for (let i = 0; i < listingCount; i++) {
-        const tokenId = randomInt(1, collectionSize);
-        const newPrice = gaussianAmount(10, 300);
-        
-        try {
-            console.log(`🏷️  Listing NFT #${tokenId} for ${ethers.formatEther(newPrice)}`);
-            const tx = await empire.listNFT(tokenId, newPrice);
-            await tx.wait();
-            console.log(`   ✅ Listed\n`);
-            await new Promise(r => setTimeout(r, randomInt(5000, 10000)));
-        } catch (e: any) {
-            console.log(`   ❌ Listing failed\n`);
-        }
-    }
-    
-    // Phase 3: Secondary Market Trading
-    console.log("\n🔄 Phase 3: Secondary Market Trading...\n");
-    const trades = randomInt(2, 5);
-    
-    for (let i = 0; i < trades; i++) {
-        const tokenId = randomInt(1, collectionSize);
-        const paymentToken = addresses.TCL;
-        
-        try {
-            console.log(`💰 Buying NFT #${tokenId} with TCL...`);
-            const tx = await empire.buyNFT(tokenId, paymentToken);
-            await tx.wait();
-            console.log(`   ✅ Purchase successful\n`);
-            sessionStats.nftTrades++;
-            await smartDelay('normal');
-        } catch (e: any) {
-            console.log(`   ❌ Purchase failed\n`);
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════
-// 🏦 DEFI STRATEGIES
-// ═══════════════════════════════════════════════════════════
-
-async function yieldFarmingSimulation(empire: any, addresses: any, deployer: any) {
-    console.log("\n╔════════════════════════════════════════════════════════╗");
-    console.log("║            🌾 YIELD FARMING SIMULATION                 ║");
-    console.log("╚════════════════════════════════════════════════════════╝\n");
-    
-    const tokens = [addresses.TCL, addresses.SAMSUNG, addresses.LG];
-    
-    // Diversified staking across tokens
-    console.log("💰 Deploying capital across staking pools...\n");
-    
-    for (const token of tokens) {
-        const lockPeriods = [0, 30, 60, 90];
-        const selectedLock = randomChoice(lockPeriods);
-        const amount = gaussianAmount(50, 300);
-        
-        try {
-            console.log(`🔒 Staking ${ethers.formatEther(amount)} (${selectedLock} day lock)`);
-            const tx = await empire.stake(token, amount, selectedLock);
-            await tx.wait();
-            
-            const apr = selectedLock === 0 ? 5 : selectedLock === 30 ? 7 : selectedLock === 60 ? 10 : 15;
-            console.log(`   ✅ Staked | APR: ${apr}%\n`);
-            
-            await smartDelay('casual');
-        } catch (e: any) {
-            console.log(`   ❌ Staking failed\n`);
-        }
-    }
-    
-    // Check rewards
-    console.log("📊 Checking staking positions...\n");
-    
-    for (const token of tokens) {
-        try {
-            const info = await empire.getStakeInfo(deployer.address, token);
-            console.log(`Token: ${token.substring(0, 10)}...`);
-            console.log(`   Staked: ${ethers.formatEther(info[0])}`);
-            console.log(`   Pending Rewards: ${ethers.formatEther(info[1])}`);
-            console.log(`   Unlock Time: ${info[2].toString() === '0' ? 'Flexible' : new Date(Number(info[2]) * 1000).toLocaleString()}\n`);
-        } catch (e: any) {
-            console.log(`   No position\n`);
-        }
-    }
-}
-
-async function liquidityMiningSession(empire: any, addresses: any, deployer: any) {
-    console.log("\n╔════════════════════════════════════════════════════════╗");
-    console.log("║          💎 LIQUIDITY MINING SESSION                   ║");
-    console.log("╚════════════════════════════════════════════════════════╝\n");
-    
-    const pools = [
-        { tokenA: addresses.TCL, tokenB: addresses.SAMSUNG, name: "TCL-SAMSUNG" },
-        { tokenA: addresses.SAMSUNG, tokenB: addresses.LG, name: "SAMSUNG-LG" },
-        { tokenA: addresses.TCL, tokenB: addresses.LG, name: "TCL-LG" }
-    ];
-    
-    console.log("💧 Deploying liquidity to pools...\n");
-    
-    for (const pool of pools) {
-        const amountA = gaussianAmount(200, 800);
-        const amountB = gaussianAmount(200, 800);
-        
-        try {
-            console.log(`💎 ${pool.name}: ${ethers.formatEther(amountA)} + ${ethers.formatEther(amountB)}`);
-            const tx = await empire.addLiquidity(pool.tokenA, pool.tokenB, amountA, amountB);
-            const receipt = await tx.wait();
-            console.log(`   ✅ LP tokens received | Gas: ${receipt!.gasUsed.toString()}\n`);
-            
-            await smartDelay('strategic');
-        } catch (e: any) {
-            console.log(`   ❌ Failed\n`);
-        }
-    }
-    
-    // Check pool stats
-    console.log("📊 Pool Analytics...\n");
-    
-    for (const pool of pools) {
-        try {
-            const reserves = await empire.getPoolReserves(pool.tokenA, pool.tokenB);
-            const price = await empire.getPoolPrice(pool.tokenA, pool.tokenB);
-            
-            console.log(`${pool.name}:`);
-            console.log(`   Reserve A: ${ethers.formatEther(reserves[0])}`);
-            console.log(`   Reserve B: ${ethers.formatEther(reserves[1])}`);
-            console.log(`   Price: ${ethers.formatEther(price)}\n`);
-        } catch (e: any) {
-            console.log(`   No data\n`);
-        }
-    }
-}

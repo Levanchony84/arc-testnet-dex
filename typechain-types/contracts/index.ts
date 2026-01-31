@@ -13,3 +13,4 @@ import type * as testtokenSol from "./Testtoken.sol";
 export type { testtokenSol };
 export type { Lock } from "./Lock";
 export type { Pika } from "./Pika";
+export type { Simo } from "./Simo";
