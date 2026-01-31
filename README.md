@@ -9,6 +9,4 @@ Solidity კონტრაქტი DEX-ის სიმულაციის�
 - Mint/Burn custom tokens (TCL, SAM, LG)
 - Owner functions (emergency withdraw, pause, etc.)
 
-## დეპლოი
-```bash
-npx hardhat run scripts/DEXDeployAll2.ts --network arcTestnet
+
