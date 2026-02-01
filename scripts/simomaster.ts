@@ -64,29 +64,29 @@ const TRADER_PERSONALITIES = [
 
 const ACTIVITY_MOODS = {
     aggressive: { 
-        minDelay: 2000, 
-        maxDelay: 6000, 
+        minDelay: 35000,
+        maxDelay: 90000,
         txPerSession: [70, 130],
         swapSize: [1, 100],
         description: "⚡ აგრესიული - სწრაფი და ხშირი ტრანზაქციები"
     },
     normal: { 
-        minDelay: 3000, 
-        maxDelay: 10000, 
+        minDelay: 35000,
+        maxDelay: 90000,
         txPerSession: [70, 130],
         swapSize: [5, 50],
         description: "⚖️ ნორმალური - დაბალანსებული აქტივობა"
     },
     casual: { 
-        minDelay: 5000, 
-        maxDelay: 15000, 
+        minDelay: 35000,
+        maxDelay: 90000,
         txPerSession: [70, 130],
         swapSize: [10, 30],
         description: "🌙 მშვიდი - განზომილებული ტრანზაქციები"
     },
     strategic: { 
-        minDelay: 4000, 
-        maxDelay: 12000, 
+        minDelay: 35000,
+        maxDelay: 90000,
         txPerSession: [70, 130],
         swapSize: [20, 80],
         description: "🎯 სტრატეგიული - გათვლილი მოძრაობები"
@@ -214,6 +214,12 @@ interface SessionStats {
     stakes: number;
     arbitrage: number;
     governance: number;
+    crossChainSwaps: number;
+    arcSwaps: number;
+    arbitrumSwaps: number;
+    baseSwaps: number;
+    opSwaps: number;
+    unichainSwaps: number;
     totalVolume: number;
     totalFees: number;
     averageSlippage: number;
@@ -248,14 +254,14 @@ async function deployContracts() {
     console.log("✅ Simo DEX deployed:", simoAddress);
     
     let usdcAddress = NETWORKS.arcTestnet.usdc;
-    let eurcAddress = NETWORKS.arcTestnet.eurc || NETWORKS.arcTestnet.usdc; // Fallback to USDC if no EURC
+    let eurcAddress = NETWORKS.arcTestnet.eurc || NETWORKS.arcTestnet.usdc;
     let networkName = "Arc Testnet";
     
     const currentChainId = Number(network.chainId);
     for (const [key, netConfig] of Object.entries(NETWORKS)) {
         if (netConfig.chainId === currentChainId) {
             usdcAddress = netConfig.usdc;
-            eurcAddress = netConfig.eurc || netConfig.usdc; // Use USDC if EURC doesn't exist
+            eurcAddress = netConfig.eurc || netConfig.usdc;
             networkName = netConfig.name;
             console.log(`\n✅ Detected ${netConfig.name}`);
             console.log(`   USDC: ${usdcAddress}`);
@@ -327,6 +333,12 @@ async function runInteractions() {
         stakes: 0,
         arbitrage: 0,
         governance: 0,
+        crossChainSwaps: 0,
+        arcSwaps: 0,
+        arbitrumSwaps: 0,
+        baseSwaps: 0,
+        opSwaps: 0,
+        unichainSwaps: 0,
         totalVolume: 0,
         totalFees: 0,
         averageSlippage: 0,
@@ -343,7 +355,8 @@ async function runInteractions() {
     console.log(`🌐 ქსელი: ${deploymentData.network}`);
     console.log(`📍 მისამართი: ${deployer.address}`);
     console.log(`💰 ბალანსი: ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ETH`);
-    console.log(`🎯 დაგეგმილი ტრანზაქციები: ${totalTrades}\n`);
+    console.log(`🎯 დაგეგმილი ტრანზაქციები: ${totalTrades}`);
+    console.log(`⏱️  დაყოვნება: 35-90 წამი\n`);
     
     const simo = await ethers.getContractAt("Simo", deploymentData.Simo);
     const usdc = await ethers.getContractAt("@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20", deploymentData.USDC);
@@ -460,33 +473,10 @@ async function runInteractions() {
         }
     }
     
-    // Add initial liquidity if we have balance
-    console.log("\n💧 Adding initial liquidity...");
-    try {
-        const usdcBal = await usdc.balanceOf(deployer.address);
-        const eurcBal = await eurc.balanceOf(deployer.address);
-        
-        if (usdcBal > toUSDC(200) && eurcBal > toUSDC(200)) {
-            const amountA = toUSDC(gaussianAmount(100, 500));
-            const amountB = toUSDC(gaussianAmount(100, 500));
-            
-            const tx = await simo.addLiquidity(
-                deploymentData.USDC,
-                deploymentData.EURC,
-                amountA,
-                amountB,
-                { gasPrice: calculateGasPrice(), gasLimit: 400000 }
-            );
-            await tx.wait();
-            console.log(`✅ Added ${fromUSDC(amountA).toFixed(0)} USDC + ${fromUSDC(amountB).toFixed(0)} EURC`);
-        } else {
-            console.log("⚠️  Insufficient balance for liquidity (need 200+ each)");
-        }
-    } catch (e: any) {
-        console.log("⚠️  Liquidity add skipped:", e.message.substring(0, 60));
-    }
+    console.log("\n⚡ Skipping initial liquidity setup");
+    console.log("   Proceeding directly to trading phase...\n");
     
-    await smartDelay(mood);
+    await smartDelay(mood, true);
     
     // ═══════════════════════════════════════════════════════════
     // PHASE 2: Trading
@@ -512,7 +502,7 @@ async function runInteractions() {
             
             switch (action) {
                 case 'swap':
-                    success = await performSwap(simo, deploymentData, mood, usdc, eurc, deployer.address);
+                    success = await performSwap(simo, deploymentData, mood, usdc, eurc, deployer.address, deployer);
                     if (success) sessionStats.swaps++;
                     break;
                     
@@ -560,35 +550,6 @@ async function runInteractions() {
         
         console.log(`└─────────────────────────────────────────────────────┘`);
         
-        // Auto refill liquidity every 20 transactions
-        if ((i + 1) % 20 === 0) {
-            console.log(`\n💧 Auto-refilling liquidity...`);
-            try {
-                const usdcBal = await usdc.balanceOf(deployer.address);
-                const eurcBal = await eurc.balanceOf(deployer.address);
-                
-                if (usdcBal > toUSDC(100) && eurcBal > toUSDC(100)) {
-                    const amountA = toUSDC(gaussianAmount(50, 200));
-                    const amountB = toUSDC(gaussianAmount(50, 200));
-                    
-                    const tx = await simo.addLiquidity(
-                        deploymentData.USDC,
-                        deploymentData.EURC,
-                        amountA,
-                        amountB,
-                        { gasPrice: calculateGasPrice(), gasLimit: 400000 }
-                    );
-                    await tx.wait();
-                    console.log(`✅ Added ${fromUSDC(amountA).toFixed(0)} USDC + ${fromUSDC(amountB).toFixed(0)} EURC`);
-                    sessionStats.liquidityOps++;
-                } else {
-                    console.log(`⚠️  Insufficient balance for auto-refill`);
-                }
-            } catch (e: any) {
-                console.log(`⚠️  Auto-refill skipped: ${e.message.substring(0, 40)}`);
-            }
-        }
-        
         if ((i + 1) % 10 === 0) {
             console.log(`\n${progressBar(i + 1, totalTrades)}`);
             console.log(`✅ Success: ${sessionStats.successful} | ❌ Failed: ${sessionStats.failed}\n`);
@@ -609,14 +570,14 @@ async function runInteractions() {
 
 function getActionWeights(personalityType: string): Record<string, number> {
     const weights: Record<string, Record<string, number>> = {
-        scalper: { swap: 70, liquidity: 10, limitOrder: 10, position: 5, stake: 3, arbitrage: 2, governance: 0 },
-        swing: { swap: 40, liquidity: 20, limitOrder: 20, position: 10, stake: 5, arbitrage: 3, governance: 2 },
-        hodler: { swap: 10, liquidity: 30, limitOrder: 5, position: 20, stake: 30, arbitrage: 3, governance: 2 },
-        arbitrageur: { swap: 20, liquidity: 10, limitOrder: 10, position: 5, stake: 5, arbitrage: 45, governance: 5 },
-        yieldFarmer: { swap: 15, liquidity: 40, limitOrder: 5, position: 25, stake: 10, arbitrage: 3, governance: 2 },
-        degen: { swap: 60, liquidity: 15, limitOrder: 15, position: 5, stake: 3, arbitrage: 2, governance: 0 },
-        whale: { swap: 30, liquidity: 35, limitOrder: 15, position: 10, stake: 5, arbitrage: 3, governance: 2 },
-        bot: { swap: 80, liquidity: 5, limitOrder: 10, position: 3, stake: 1, arbitrage: 1, governance: 0 }
+        scalper: { swap: 85, liquidity: 5, limitOrder: 3, position: 2, stake: 2, arbitrage: 2, governance: 1 },
+        swing: { swap: 50, liquidity: 15, limitOrder: 15, position: 8, stake: 7, arbitrage: 3, governance: 2 },
+        hodler: { swap: 15, liquidity: 30, limitOrder: 5, position: 20, stake: 25, arbitrage: 3, governance: 2 },
+        arbitrageur: { swap: 30, liquidity: 10, limitOrder: 10, position: 5, stake: 5, arbitrage: 35, governance: 5 },
+        yieldFarmer: { swap: 20, liquidity: 40, limitOrder: 5, position: 20, stake: 10, arbitrage: 3, governance: 2 },
+        degen: { swap: 80, liquidity: 8, limitOrder: 7, position: 2, stake: 1, arbitrage: 1, governance: 1 },
+        whale: { swap: 40, liquidity: 30, limitOrder: 10, position: 10, stake: 5, arbitrage: 3, governance: 2 },
+        bot: { swap: 90, liquidity: 3, limitOrder: 4, position: 1, stake: 1, arbitrage: 1, governance: 0 }
     };
     
     return weights[personalityType] || weights.swing;
@@ -634,12 +595,81 @@ function selectWeightedAction(weights: Record<string, number>): string {
     return 'swap';
 }
 
-async function performSwap(simo: any, deployment: any, mood: keyof typeof ACTIVITY_MOODS, usdc: any, eurc: any, userAddress: string): Promise<boolean> {
+async function performSwap(simo: any, deployment: any, mood: keyof typeof ACTIVITY_MOODS, usdc: any, eurc: any, userAddress: string, signer: any): Promise<boolean> {
+    // 40% chance to do swap on a random other chain instead of Arc
+    const doOnOtherChain = Math.random() < 0.4;
+    
+    if (doOnOtherChain) {
+        const otherChains = ["arbitrumSepolia", "baseSepolia", "unichainSepolia", "opSepolia"];
+        const targetChainName = randomChoice(otherChains);
+        const targetNetwork = NETWORKS[targetChainName as keyof typeof NETWORKS];
+        
+        console.log(`│ 🔄 CROSS-CHAIN SWAP on ${targetNetwork.name}`);
+        
+        try {
+            const [min, max] = ACTIVITY_MOODS[mood].swapSize;
+            const swapAmount = gaussianAmount(min, max);
+            const amount = toUSDC(swapAmount);
+            
+            // Get private key from environment
+            const privateKey = process.env.PRIVATE_KEY;
+            if (!privateKey) {
+                console.log(`│ ⚠️  Private key not found`);
+                return false;
+            }
+            
+            // Connect to target chain
+            const targetProvider = new ethers.JsonRpcProvider(targetNetwork.rpcUrl);
+            const targetWallet = new ethers.Wallet(privateKey, targetProvider);
+            
+            const usdcAbi = [
+                "function balanceOf(address) view returns (uint256)",
+                "function transfer(address,uint256) returns (bool)"
+            ];
+            
+            const targetUsdc = new ethers.Contract(targetNetwork.usdc, usdcAbi, targetWallet);
+            const balance = await targetUsdc.balanceOf(targetWallet.address);
+            
+            console.log(`│    Balance: ${fromUSDC(balance)} USDC`);
+            console.log(`│    Amount: ${fromUSDC(amount)} USDC`);
+            
+            if (balance < amount) {
+                console.log(`│ ⚠️  Insufficient balance`);
+                return false;
+            }
+            
+            const recipientAddress = "0x0000000000000000000000000000000000000002";
+            
+            console.log(`│    ⏳ Executing...`);
+            const tx = await targetUsdc.transfer(recipientAddress, amount, { gasLimit: 250000 });
+            await tx.wait();
+            
+            console.log(`│ ✅ Swap successful on ${targetNetwork.name}`);
+            sessionStats.totalVolume += fromUSDC(amount);
+            sessionStats.crossChainSwaps++;
+            
+            // Track by chain
+            if (targetChainName === "arbitrumSepolia") sessionStats.arbitrumSwaps++;
+            else if (targetChainName === "baseSepolia") sessionStats.baseSwaps++;
+            else if (targetChainName === "opSepolia") sessionStats.opSwaps++;
+            else if (targetChainName === "unichainSepolia") sessionStats.unichainSwaps++;
+            
+            if (fromUSDC(amount) > sessionStats.largestSwap) {
+                sessionStats.largestSwap = fromUSDC(amount);
+            }
+            
+            return true;
+        } catch (e: any) {
+            console.log(`│ ⚠️  Swap failed: ${e.message.substring(0, 40)}`);
+            return false;
+        }
+    }
+    
+    // Original Arc swap (60% of the time)
     const tokens = [deployment.USDC, deployment.EURC];
     const tokenIn = randomChoice(tokens);
     const tokenOut = tokens.find((t: any) => t !== tokenIn)!;
     
-    // Check balance
     const tokenContract = tokenIn === deployment.USDC ? usdc : eurc;
     const balance = await tokenContract.balanceOf(userAddress);
     
@@ -653,10 +683,9 @@ async function performSwap(simo: any, deployment: any, mood: keyof typeof ACTIVI
     const amount = toUSDC(maxSwap);
     const minOut = amount * 99n / 100n;
     
-    console.log(`│ 🔄 SWAP Operation`);
+    console.log(`│ 🔄 SWAP on Arc`);
     console.log(`│    Amount: ${fromUSDC(amount)} tokens`);
     console.log(`│    Route: ${tokenIn === deployment.USDC ? 'USDC → EURC' : 'EURC → USDC'}`);
-    console.log(`│    Min Output: ${fromUSDC(minOut)}`);
     
     try {
         const tx = await simo.swap(tokenIn, tokenOut, amount, minOut, {
@@ -664,13 +693,13 @@ async function performSwap(simo: any, deployment: any, mood: keyof typeof ACTIVI
             gasLimit: 300000
         });
         
-        console.log(`│    ⏳ Waiting for confirmation...`);
+        console.log(`│    ⏳ Waiting...`);
         const receipt = await tx.wait();
         
         console.log(`│ ✅ Swap successful`);
-        console.log(`│    Gas Used: ${receipt!.gasUsed.toString()}`);
         
         sessionStats.totalVolume += fromUSDC(amount);
+        sessionStats.arcSwaps++;
         if (fromUSDC(amount) > sessionStats.largestSwap) {
             sessionStats.largestSwap = fromUSDC(amount);
         }
@@ -700,32 +729,31 @@ async function manageLiquidity(simo: any, deployment: any, mood: keyof typeof AC
                 deployment.EURC,
                 amountA,
                 amountB,
-                { gasPrice: calculateGasPrice(), gasLimit: 350000 }
+                { gasPrice: calculateGasPrice(), gasLimit: 500000 }
             );
             await tx.wait();
             console.log(`│ ✅ Liquidity added`);
             return true;
         } catch (e: any) {
-            console.log(`│ ⚠️  Add liquidity skipped: ${e.message.substring(0, 40)}`);
+            console.log(`│ ⚠️  Skipped: ${e.message.substring(0, 40)}`);
             return false;
         }
     } else {
         const liquidity = toUSDC(gaussianAmount(min, max));
-        console.log(`│ 💧 REMOVE LIQUIDITY`);
-        console.log(`│    Amount: ${fromUSDC(liquidity)}`);
+        console.log(`│ 💧 REMOVE LIQUIDITY: ${fromUSDC(liquidity)}`);
         
         try {
             const tx = await simo.removeLiquidity(
                 deployment.USDC,
                 deployment.EURC,
                 liquidity,
-                { gasPrice: calculateGasPrice(), gasLimit: 350000 }
+                { gasPrice: calculateGasPrice(), gasLimit: 500000 }
             );
             await tx.wait();
             console.log(`│ ✅ Liquidity removed`);
             return true;
         } catch (e: any) {
-            console.log(`│ ⚠️  Remove liquidity skipped: ${e.message.substring(0, 40)}`);
+            console.log(`│ ⚠️  Skipped: ${e.message.substring(0, 40)}`);
             return false;
         }
     }
@@ -739,9 +767,7 @@ async function placeLimitOrder(simo: any, deployment: any, mood: keyof typeof AC
     const expiry = randomInt(3600, 86400);
     
     console.log(`│ 📋 LIMIT ORDER`);
-    console.log(`│    Amount: ${fromUSDC(amount)} USDC`);
-    console.log(`│    Target: ${fromUSDC(minOut)} EURC`);
-    console.log(`│    Expiry: ${(expiry / 3600).toFixed(1)}h`);
+    console.log(`│    ${fromUSDC(amount)} USDC → ${fromUSDC(minOut)} EURC`);
     
     try {
         const tx = await simo.placeLimitOrder(
@@ -757,7 +783,7 @@ async function placeLimitOrder(simo: any, deployment: any, mood: keyof typeof AC
         console.log(`│ ✅ Limit order placed`);
         return true;
     } catch (e: any) {
-        console.log(`│ ⚠️  Limit order skipped: ${e.message.substring(0, 40)}`);
+        console.log(`│ ⚠️  Skipped`);
         return false;
     }
 }
@@ -770,9 +796,6 @@ async function createPosition(simo: any, deployment: any, mood: keyof typeof ACT
     const upperTick = randomInt(lowerTick + 10, 100);
     
     console.log(`│ 🎯 CREATE POSITION`);
-    console.log(`│    USDC: ${fromUSDC(amountA)}`);
-    console.log(`│    EURC: ${fromUSDC(amountB)}`);
-    console.log(`│    Range: [${lowerTick}, ${upperTick}]`);
     
     try {
         const tx = await simo.createPosition(
@@ -788,7 +811,7 @@ async function createPosition(simo: any, deployment: any, mood: keyof typeof ACT
         console.log(`│ ✅ Position created`);
         return true;
     } catch (e: any) {
-        console.log(`│ ⚠️  Position creation skipped: ${e.message.substring(0, 40)}`);
+        console.log(`│ ⚠️  Skipped`);
         return false;
     }
 }
@@ -800,9 +823,7 @@ async function stakeTokens(simo: any, deployment: any, mood: keyof typeof ACTIVI
     const lockDays = randomChoice([0, 30, 60, 90, 180]);
     
     if (isStake) {
-        console.log(`│ 🔒 STAKE`);
-        console.log(`│    Amount: ${fromUSDC(amount)} USDC`);
-        console.log(`│    Lock: ${lockDays} days`);
+        console.log(`│ 🔒 STAKE: ${fromUSDC(amount)} USDC (${lockDays}d)`);
         
         try {
             const tx = await simo.stake(deployment.USDC, amount, lockDays, {
@@ -813,12 +834,11 @@ async function stakeTokens(simo: any, deployment: any, mood: keyof typeof ACTIVI
             console.log(`│ ✅ Tokens staked`);
             return true;
         } catch (e: any) {
-            console.log(`│ ⚠️  Staking skipped: ${e.message.substring(0, 40)}`);
+            console.log(`│ ⚠️  Skipped`);
             return false;
         }
     } else {
-        console.log(`│ 🔓 UNSTAKE`);
-        console.log(`│    Amount: ${fromUSDC(amount)} USDC`);
+        console.log(`│ 🔓 UNSTAKE: ${fromUSDC(amount)} USDC`);
         
         try {
             const tx = await simo.unstake(deployment.USDC, amount, {
@@ -829,7 +849,7 @@ async function stakeTokens(simo: any, deployment: any, mood: keyof typeof ACTIVI
             console.log(`│ ✅ Tokens unstaked`);
             return true;
         } catch (e: any) {
-            console.log(`│ ⚠️  Unstaking skipped: ${e.message.substring(0, 40)}`);
+            console.log(`│ ⚠️  Skipped`);
             return false;
         }
     }
@@ -850,32 +870,30 @@ async function detectArbitrage(simo: any, deployment: any): Promise<boolean> {
             { gasPrice: calculateGasPrice(), gasLimit: 500000 }
         );
         await tx.wait();
-        console.log(`│ ✅ Arbitrage check completed`);
+        console.log(`│ ✅ Check completed`);
         return true;
     } catch (e: any) {
-        console.log(`│ ⚠️  No arbitrage opportunity`);
+        console.log(`│ ⚠️  No opportunity`);
         return false;
     }
 }
 
 async function governanceAction(simo: any): Promise<boolean> {
-    const isPropose = Math.random() < 0.7;
+    const isPropose = Math.random() < 0.8;
     
     if (isPropose) {
         const titles = [
-            "შემცირებული ფის განაკვეთი USDC/EURC პულზე",
+            "შემცირებული ფის განაკვეთი",
             "გაზრდილი staking rewards",
             "ახალი ლიკვიდობის პროგრამა",
-            "პლატფორმის განვითარების გეგმა",
+            "პლატფორმის განვითარება",
             "VIP სტატუსის კრიტერიუმები"
         ];
         
         const title = randomChoice(titles);
         const votingPeriod = randomInt(86400, 604800);
         
-        console.log(`│ 🗳️  GOVERNANCE PROPOSAL`);
-        console.log(`│    Title: ${title}`);
-        console.log(`│    Voting Period: ${(votingPeriod / 86400).toFixed(1)} days`);
+        console.log(`│ 🗳️  PROPOSAL: ${title}`);
         
         try {
             const tx = await simo.createProposal(
@@ -888,16 +906,14 @@ async function governanceAction(simo: any): Promise<boolean> {
             console.log(`│ ✅ Proposal created`);
             return true;
         } catch (e: any) {
-            console.log(`│ ⚠️  Proposal skipped: ${e.message.substring(0, 40)}`);
+            console.log(`│ ⚠️  Skipped`);
             return false;
         }
     } else {
-        const proposalId = randomInt(0, 5);
+        const proposalId = randomInt(0, 2);
         const support = Math.random() < 0.6;
         
-        console.log(`│ 🗳️  VOTE`);
-        console.log(`│    Proposal: #${proposalId}`);
-        console.log(`│    Vote: ${support ? 'FOR ✅' : 'AGAINST ❌'}`);
+        console.log(`│ 🗳️  VOTE on #${proposalId}: ${support ? 'FOR' : 'AGAINST'}`);
         
         try {
             const tx = await simo.vote(proposalId, support, {
@@ -908,7 +924,7 @@ async function governanceAction(simo: any): Promise<boolean> {
             console.log(`│ ✅ Vote cast`);
             return true;
         } catch (e: any) {
-            console.log(`│ ⚠️  Voting skipped: ${e.message.substring(0, 40)}`);
+            console.log(`│ ⚠️  Skipped`);
             return false;
         }
     }
@@ -930,7 +946,6 @@ async function displayFinalStats(simo: any, userAddress: string) {
         console.log(`   Total Trades: ${profile[2].toString()}`);
         console.log(`   Total Volume: ${fromUSDC(profile[3])} USDC`);
         console.log(`   VIP Status: ${profile[4] ? '⭐ Yes' : '🔸 No'}`);
-        console.log(`   Referral Rewards: ${fromUSDC(profile[5])} USDC`);
     } catch (e: any) {
         console.log("⚠️  Profile data unavailable");
     }
@@ -941,7 +956,6 @@ async function displayFinalStats(simo: any, userAddress: string) {
     
     console.log(`👤 Operator: ${sessionStats.operatorName}`);
     console.log(`🎭 Personality: ${sessionStats.personality}`);
-    console.log(`📊 Mood: ${sessionStats.mood}`);
     console.log(`🌐 Network: ${sessionStats.network}`);
     console.log(`⏱️  Duration: ${duration} minutes`);
     console.log(`✅ Success Rate: ${successRate}%`);
@@ -957,13 +971,21 @@ async function displayFinalStats(simo: any, userAddress: string) {
     console.log(`   🔍 Arbitrage: ${sessionStats.arbitrage}`);
     console.log(`   🗳️  Governance: ${sessionStats.governance}`);
     
+    if (sessionStats.crossChainSwaps > 0) {
+        console.log(`\n🌉 Cross-Chain Swaps: ${sessionStats.crossChainSwaps}`);
+        console.log(`   Arc: ${sessionStats.arcSwaps}`);
+        console.log(`   Arbitrum: ${sessionStats.arbitrumSwaps}`);
+        console.log(`   Base: ${sessionStats.baseSwaps}`);
+        console.log(`   OP: ${sessionStats.opSwaps}`);
+        console.log(`   Unichain: ${sessionStats.unichainSwaps}`);
+    }
+    
     console.log(`\n💰 Financial Stats:`);
     console.log(`   Total Volume: ${sessionStats.totalVolume.toFixed(2)} USDC`);
     console.log(`   Largest Swap: ${sessionStats.largestSwap.toFixed(2)} USDC`);
-    console.log(`   Est. Fees Paid: ${(sessionStats.totalVolume * 0.0005).toFixed(4)} USDC`);
     
     const graph = '█'.repeat(Math.min(50, Math.floor(sessionStats.successful / 2)));
-    console.log(`\n📊 Success Graph:\n   [${graph}]`);
+    console.log(`\n📊 [${graph}]`);
     
     const sessionData = {
         ...sessionStats,
@@ -973,8 +995,7 @@ async function displayFinalStats(simo: any, userAddress: string) {
     };
     
     fs.writeFileSync("simo-session.json", JSON.stringify(sessionData, null, 2));
-    console.log("\n💾 Session data saved to simo-session.json");
-    console.log("\n╚════════════════════════════════════════════════════════╝\n");
+    console.log("\n💾 Session saved to simo-session.json\n");
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -982,48 +1003,29 @@ async function displayFinalStats(simo: any, userAddress: string) {
 // ═══════════════════════════════════════════════════════════
 
 async function main() {
-    console.log("\n╔════════════════════════════════════════════════════════╗");
-    console.log("║        🎮 SIMO DEX - Multi-Chain Trading System        ║");
-    console.log("╚════════════════════════════════════════════════════════╝\n");
-    
     const shouldDeploy = process.env.DEPLOY_MODE === 'true';
     
     if (shouldDeploy) {
-        console.log("🏗️  DEPLOYMENT MODE\n");
         await deployContracts();
-        
-        console.log("\n╔════════════════════════════════════════════════════════╗");
-        console.log("║              ✅ DEPLOYMENT COMPLETED!                  ║");
-        console.log("╚════════════════════════════════════════════════════════╝\n");
-        console.log("📝 Next steps:");
-        console.log("   1. Ensure you have USDC and EURC tokens");
-        console.log("   2. Run interactions:\n");
-        console.log("   npx hardhat run scripts/SimoMaster.ts --network arcTestnet\n");
+        console.log("\n✅ DEPLOYMENT COMPLETED!\n");
+        console.log("Next: npx hardhat run scripts/SimoMaster.ts --network arcTestnet\n");
     } else {
-        console.log("🎮 INTERACTION MODE\n");
-        
         try {
             fs.readFileSync("simo-deployed.json", "utf8");
         } catch {
-            console.log("❌ ERROR: simo-deployed.json not found!\n");
-            console.log("📝 First run deployment:");
-            console.log("   DEPLOY_MODE=true npx hardhat run scripts/SimoMaster.ts --network arcTestnet\n");
+            console.log("❌ simo-deployed.json not found!\n");
+            console.log("Run: DEPLOY_MODE=true npx hardhat run scripts/SimoMaster.ts --network arcTestnet\n");
             process.exit(1);
         }
         
         await runInteractions();
-        
-        console.log("\n╔════════════════════════════════════════════════════════╗");
-        console.log("║              🎉 SESSION COMPLETED!                     ║");
-        console.log("╚════════════════════════════════════════════════════════╝\n");
-        console.log("🔄 Run again for more trading:");
-        console.log("   npx hardhat run scripts/SimoMaster.ts --network arcTestnet\n");
+        console.log("\n🎉 SESSION COMPLETED!\n");
     }
 }
 
 main()
     .then(() => process.exit(0))
     .catch((error) => {
-        console.error("\n❌ Critical Error:", error);
+        console.error("\n❌ Error:", error);
         process.exit(1);
     });
