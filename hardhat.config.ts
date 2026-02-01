@@ -71,6 +71,34 @@ const config: HardhatUserConfig = {
           browserURL: "https://sepolia.basescan.org",
         },
       },
+
+      // დამატებული 3 ქსელი (შენი მოთხოვნით)
+      {
+        network: "unichainSepolia",
+        chainId: 1301,
+        urls: {
+          apiURL: "https://unichain-sepolia.blockscout.com/api",
+          browserURL: "https://unichain-sepolia.blockscout.com",
+        },
+      },
+
+      {
+        network: "opSepolia",
+        chainId: 11155420,
+        urls: {
+          apiURL: "https://api-sepolia-optimism.etherscan.io/api",
+          browserURL: "https://sepolia-optimism.etherscan.io",
+        },
+      },
+
+      {
+        network: "arbitrumSepolia",
+        chainId: 421614,
+        urls: {
+          apiURL: "https://api-sepolia.arbiscan.io/api",
+          browserURL: "https://sepolia.arbiscan.io",
+        },
+      },
     ],
   },
 };
