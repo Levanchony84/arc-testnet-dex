@@ -94,6 +94,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Strings__factory>;
     getContractFactory(
+      name: "ArcToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ArcToken__factory>;
+    getContractFactory(
+      name: "ArcUltimate",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ArcUltimate__factory>;
+    getContractFactory(
       name: "HPDeFiEmpire",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.HPDeFiEmpire__factory>;
@@ -243,6 +251,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Strings>;
     getContractAt(
+      name: "ArcToken",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ArcToken>;
+    getContractAt(
+      name: "ArcUltimate",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ArcUltimate>;
+    getContractAt(
       name: "HPDeFiEmpire",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -384,6 +402,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Strings>;
     deployContract(
+      name: "ArcToken",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ArcToken>;
+    deployContract(
+      name: "ArcUltimate",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ArcUltimate>;
+    deployContract(
       name: "HPDeFiEmpire",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.HPDeFiEmpire>;
@@ -532,6 +558,16 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Strings>;
+    deployContract(
+      name: "ArcToken",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ArcToken>;
+    deployContract(
+      name: "ArcUltimate",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ArcUltimate>;
     deployContract(
       name: "HPDeFiEmpire",
       args: any[],

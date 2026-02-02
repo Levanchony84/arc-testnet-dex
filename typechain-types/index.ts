@@ -46,6 +46,10 @@ export type { ReentrancyGuard } from "./@openzeppelin/contracts/utils/Reentrancy
 export { ReentrancyGuard__factory } from "./factories/@openzeppelin/contracts/utils/ReentrancyGuard__factory";
 export type { Strings } from "./@openzeppelin/contracts/utils/Strings";
 export { Strings__factory } from "./factories/@openzeppelin/contracts/utils/Strings__factory";
+export type { ArcToken } from "./contracts/Arctoken.sol/ArcToken";
+export { ArcToken__factory } from "./factories/contracts/Arctoken.sol/ArcToken__factory";
+export type { ArcUltimate } from "./contracts/Arcultimate.sol/ArcUltimate";
+export { ArcUltimate__factory } from "./factories/contracts/Arcultimate.sol/ArcUltimate__factory";
 export type { HPDeFiEmpire } from "./contracts/Hpdefiempire.sol/HPDeFiEmpire";
 export { HPDeFiEmpire__factory } from "./factories/contracts/Hpdefiempire.sol/HPDeFiEmpire__factory";
 export type { HPPart1 } from "./contracts/HPPart1.sol/HPPart1";

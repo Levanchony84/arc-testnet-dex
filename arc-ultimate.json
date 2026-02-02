@@ -1,0 +1,51 @@
+{
+  "network": {
+    "name": "arcTestnet",
+    "chainId": "5042002"
+  },
+  "deployer": "0xc8fF052e18B25fe7ed595b653756b5Ec6234c3f8",
+  "contracts": {
+    "ArcUltimate": "0xD4402e12825864cF5345301C0A301BD5559bAe7F",
+    "USDC": "0x7487E6e4C551D4600815534F2e3147b07b91fa4e",
+    "EURC": "0x96bFaaF583c3e628e97ac7bC49e53259b0036D06",
+    "ARC": "0xbae3d6De044E4c4D129579454bf31C8FdB374d33"
+  },
+  "tokens": {
+    "usdc": {
+      "address": "0x7487E6e4C551D4600815534F2e3147b07b91fa4e",
+      "symbol": "USDC",
+      "decimals": 6,
+      "supply": "100000000"
+    },
+    "eurc": {
+      "address": "0x96bFaaF583c3e628e97ac7bC49e53259b0036D06",
+      "symbol": "EURC",
+      "decimals": 6,
+      "supply": "100000000"
+    },
+    "arc": {
+      "address": "0xbae3d6De044E4c4D129579454bf31C8FdB374d33",
+      "symbol": "ARC",
+      "decimals": 18,
+      "supply": "1000000000"
+    }
+  },
+  "pools": [
+    {
+      "tokenA": "USDC",
+      "tokenB": "EURC",
+      "liquidity": "100000"
+    },
+    {
+      "tokenA": "USDC",
+      "tokenB": "ARC",
+      "liquidity": "100000 USDC + 1M ARC"
+    },
+    {
+      "tokenA": "EURC",
+      "tokenB": "ARC",
+      "liquidity": "Ready for addition"
+    }
+  ],
+  "deployedAt": "2026-02-02T10:46:34.671Z"
+}
