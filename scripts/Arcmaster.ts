@@ -201,86 +201,6 @@ async function main() {
     await smartDelay(profile);
     
     // ═══════════════════════════════════════════════════════════
-    // Initial Liquidity Setup
-    // ═══════════════════════════════════════════════════════════
-    
-    console.log("\n╔════════════════════════════════════════════════════════╗");
-    console.log("║              INITIAL LIQUIDITY SETUP                   ║");
-    console.log("╚════════════════════════════════════════════════════════╝\n");
-    
-    console.log("Adding initial liquidity pools...\n");
-    
-    // Pool 1: USDC/EURC
-    try {
-        console.log("💧 Pool: USDC/EURC");
-        const amountA = toAmount(10000, 6); // 10,000 USDC
-        const amountB = toAmount(10000, 6); // 10,000 EURC
-        
-        const tx = await ultimate.addLiquidity(
-            deployment.contracts.USDC,
-            deployment.contracts.EURC,
-            amountA,
-            amountB
-        );
-        await tx.wait();
-        console.log("✅ USDC/EURC pool created\n");
-    } catch (e: any) {
-        if (e.message.includes("exists") || e.message.includes("liquidity")) {
-            console.log("⚠️  USDC/EURC pool exists\n");
-        } else {
-            console.log(`⚠️  USDC/EURC pool skipped: ${e.message.substring(0, 50)}\n`);
-        }
-    }
-    
-    // Pool 2: USDC/ARC
-    try {
-        console.log("💧 Pool: USDC/ARC");
-        const amountA = toAmount(5000, 6);    // 5,000 USDC
-        const amountB = toAmount(50000, 18);  // 50,000 ARC
-        
-        const tx = await ultimate.addLiquidity(
-            deployment.contracts.USDC,
-            deployment.contracts.ARC,
-            amountA,
-            amountB
-        );
-        await tx.wait();
-        console.log("✅ USDC/ARC pool created\n");
-    } catch (e: any) {
-        if (e.message.includes("exists") || e.message.includes("liquidity")) {
-            console.log("⚠️  USDC/ARC pool exists\n");
-        } else {
-            console.log(`⚠️  USDC/ARC pool skipped: ${e.message.substring(0, 50)}\n`);
-        }
-    }
-    
-    // Pool 3: EURC/ARC
-    try {
-        console.log("💧 Pool: EURC/ARC");
-        const amountA = toAmount(5000, 6);    // 5,000 EURC
-        const amountB = toAmount(50000, 18);  // 50,000 ARC
-        
-        const tx = await ultimate.addLiquidity(
-            deployment.contracts.EURC,
-            deployment.contracts.ARC,
-            amountA,
-            amountB
-        );
-        await tx.wait();
-        console.log("✅ EURC/ARC pool created\n");
-    } catch (e: any) {
-        if (e.message.includes("exists") || e.message.includes("liquidity")) {
-            console.log("⚠️  EURC/ARC pool exists\n");
-        } else {
-            console.log(`⚠️  EURC/ARC pool skipped: ${e.message.substring(0, 50)}\n`);
-        }
-    }
-    
-    console.log("✅ Initial liquidity setup complete!\n");
-    
-    await smartDelay(profile);
-    
-    // ═══════════════════════════════════════════════════════════
     // Trading Phase
     // ═══════════════════════════════════════════════════════════
     
@@ -437,13 +357,13 @@ async function nftOperation(ultimate: any, deployment: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ NFT minted`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else if (op === 'list') {
-        const tokenId = randInt(1, 50);
+        const tokenId = randInt(1, 20);
         const price = toAmount(randInt(10, 1000), 6);
         
         console.log(`│ 🏷️  Listing NFT #${tokenId}`);
@@ -453,13 +373,13 @@ async function nftOperation(ultimate: any, deployment: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Listed`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else {
-        const tokenId = randInt(1, 50);
+        const tokenId = randInt(1, 20);
         
         console.log(`│ 💰 Buying NFT #${tokenId}`);
         
@@ -469,7 +389,7 @@ async function nftOperation(ultimate: any, deployment: any): Promise<boolean> {
             console.log(`│ ✅ Purchased`);
             stats.nftTrades++;
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
@@ -538,7 +458,7 @@ async function auctionOp(ultimate: any): Promise<boolean> {
     const op = randChoice(ops);
     
     if (op === 'create') {
-        const tokenId = randInt(1, 50);
+        const tokenId = randInt(1, 20);
         const startPrice = toAmount(randInt(10, 100), 18);
         const duration = randInt(3600, 86400);
         
@@ -549,13 +469,13 @@ async function auctionOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Created`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else if (op === 'bid') {
-        const auctionId = randInt(0, 10);
+        const auctionId = randInt(0, 5);
         const bid = toAmount(randInt(20, 200), 18);
         
         console.log(`│ 💰 Bidding on Auction #${auctionId}`);
@@ -565,13 +485,13 @@ async function auctionOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Bid placed`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else {
-        const auctionId = randInt(0, 10);
+        const auctionId = randInt(0, 5);
         
         console.log(`│ 🏁 Ending Auction #${auctionId}`);
         
@@ -580,7 +500,7 @@ async function auctionOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Ended`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
@@ -602,13 +522,13 @@ async function lotteryOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Created`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else if (op === 'buy') {
-        const lotteryId = randInt(0, 10);
+        const lotteryId = randInt(0, 5);
         const price = toAmount(randInt(1, 10), 18);
         
         console.log(`│ 🎟️  Buying Lottery Ticket #${lotteryId}`);
@@ -618,13 +538,13 @@ async function lotteryOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Ticket purchased`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else {
-        const lotteryId = randInt(0, 10);
+        const lotteryId = randInt(0, 5);
         
         console.log(`│ 🎲 Drawing Lottery #${lotteryId}`);
         
@@ -633,7 +553,7 @@ async function lotteryOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Winner drawn`);
             return true;
-        } catch (e: any) {
+        } catch {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
