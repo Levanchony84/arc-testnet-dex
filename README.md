@@ -1,15 +1,19 @@
-Simo DEX - Multi-Chain Testnet Trading Bot
+# Arc Testnet Dominator 9000
 
-მულტი-ქსელური ტრეიდინგ/ფარმინგ სკრიპტი Arbitrum Sepolia, Base Sepolia, OP Sepolia, Unichain Sepolia-ზე.
+Advanced multi-chain arbitrage & reputation building bot for Arc Testnet + Sepolia chains.
 
- Personality + mood სისტემა (scalper, hodler, degen...)
- Gaussian delays + time-based behavior
- Swap, liquidity, limit orders, staking, arbitrage, governance
- Session stats + JSON save
+Key features:
+- Personality evolution system (newbie → degen → yield farmer → governor → whale)
+- Intelligent gas optimizer with batching and patience logic
+- Real cross-chain arbitrage hunter (5 chains)
+- Social coordination & group action simulation
+- On-chain reputation scoring with recommendations
+- Emergency response system (exploit/crash detection)
+- Georgian time-zone awareness for realistic behavior
 
-გაშვება:
-npx hardhat run scripts/SimoMaster.ts deploy --network arbitrumSepolia
-npx hardhat run scripts/SimoMaster.ts --network baseSepolia
+Runs on: Arc Testnet, Arbitrum Sepolia, Base Sepolia, OP Sepolia, Unichain Sepolia.
 
-tx hash https://testnet.arcscan.app/tx/0x4f23888e390f79b83764355dfeaae6a5f6e0efd0d8027008a7be2bccb2374fff
+Usage:
+npx hardhat run scripts/Arcdominator9000.ts --network arcTestnet
 
+🔥 Building reputation for fair airdrop farming
