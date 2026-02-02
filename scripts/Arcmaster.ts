@@ -437,13 +437,13 @@ async function nftOperation(ultimate: any, deployment: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ NFT minted`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else if (op === 'list') {
-        const tokenId = randInt(1, 20);
+        const tokenId = randInt(1, 50);
         const price = toAmount(randInt(10, 1000), 6);
         
         console.log(`│ 🏷️  Listing NFT #${tokenId}`);
@@ -453,13 +453,13 @@ async function nftOperation(ultimate: any, deployment: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Listed`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else {
-        const tokenId = randInt(1, 20);
+        const tokenId = randInt(1, 50);
         
         console.log(`│ 💰 Buying NFT #${tokenId}`);
         
@@ -469,7 +469,7 @@ async function nftOperation(ultimate: any, deployment: any): Promise<boolean> {
             console.log(`│ ✅ Purchased`);
             stats.nftTrades++;
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
@@ -538,7 +538,7 @@ async function auctionOp(ultimate: any): Promise<boolean> {
     const op = randChoice(ops);
     
     if (op === 'create') {
-        const tokenId = randInt(1, 20);
+        const tokenId = randInt(1, 50);
         const startPrice = toAmount(randInt(10, 100), 18);
         const duration = randInt(3600, 86400);
         
@@ -549,13 +549,13 @@ async function auctionOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Created`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else if (op === 'bid') {
-        const auctionId = randInt(0, 5);
+        const auctionId = randInt(0, 10);
         const bid = toAmount(randInt(20, 200), 18);
         
         console.log(`│ 💰 Bidding on Auction #${auctionId}`);
@@ -565,13 +565,13 @@ async function auctionOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Bid placed`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else {
-        const auctionId = randInt(0, 5);
+        const auctionId = randInt(0, 10);
         
         console.log(`│ 🏁 Ending Auction #${auctionId}`);
         
@@ -580,7 +580,7 @@ async function auctionOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Ended`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
@@ -602,13 +602,13 @@ async function lotteryOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Created`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else if (op === 'buy') {
-        const lotteryId = randInt(0, 5);
+        const lotteryId = randInt(0, 10);
         const price = toAmount(randInt(1, 10), 18);
         
         console.log(`│ 🎟️  Buying Lottery Ticket #${lotteryId}`);
@@ -618,13 +618,13 @@ async function lotteryOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Ticket purchased`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
         
     } else {
-        const lotteryId = randInt(0, 5);
+        const lotteryId = randInt(0, 10);
         
         console.log(`│ 🎲 Drawing Lottery #${lotteryId}`);
         
@@ -633,7 +633,7 @@ async function lotteryOp(ultimate: any): Promise<boolean> {
             await tx.wait();
             console.log(`│ ✅ Winner drawn`);
             return true;
-        } catch {
+        } catch (e: any) {
             console.log(`│ ⚠️  Skipped`);
             return false;
         }
