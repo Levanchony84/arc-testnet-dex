@@ -16,4 +16,4 @@ Runs on: Arc Testnet, Arbitrum Sepolia, Base Sepolia, OP Sepolia, Unichain Sepol
 Usage:
 npx hardhat run scripts/Arcdominator9000.ts --network arcTestnet
 
-🔥 Building reputation for fair airdrop farming
+🔥 Building reputation 
